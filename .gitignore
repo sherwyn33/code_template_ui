@@ -1,0 +1,11 @@
+.idea/
+include/
+Lib/
+Scripts/
+share/
+volumes/
+.venv/
+__pycache__/
+node_modules/
+/node_modules
+/node_modules

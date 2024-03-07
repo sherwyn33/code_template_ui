@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block page_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+{% endblock %}
+{% block content %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Main Node File Path</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in table_data %}
+                <!-- Main node row -->
+                <tr class="main-node">
+                    <td><a href="#" class="file-link" data-file-path="{{ row.file.file_path }}">{{ row.file.file_path }}</a></td>
+                    <td><button class="btn btn-info details-btn" data-file-path="{{ row.file.file_path }}">View Details</button></td>
+                </tr>
+                <!-- Connected files placeholder -->
+                {% for connected_file in row.file.connected_files %}
+                <tr class="connected-files" style="display:none;">
+                    <td><a href="#" class="file-link" data-file-path="{{ connected_file.file_path }}">{{ connected_file.file_path }}</a></td>
+                    <td><button class="btn btn-info details-btn" data-file-path="{{ connected_file.file.file_path }}">View Details</button></td>
+                </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Modal -->
+    <div class="modal fade" id="fileModal" tabindex="-1" role="dialog" aria-labelledby="fileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fileModalLabel">File Content</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <pre id="fileContent"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Object Details Modal -->
+    <div class="modal fade" id="detailsModal" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailsModalLabel">Object Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Here will be the form for object details -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="saveDetails">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        $(document).ready(function() {
+            $(".file-link").on("click", function(e) {
+                e.preventDefault();
+                e.stopPropagation(); // Stop event propagation
+
+                let filePath = $(this).data("file-path");
+                $.get("/file_content", {file_path: filePath}, function(data) {
+                    if (data.content) {
+                        $("#fileContent").text(data.content);
+                        $("#fileModal").modal('show');
+                    } else {
+                        alert("Error loading file content.");
+                    }
+                });
+            });
+
+            $(".main-node td").on("click", function(e) {
+                // Check if the click was not on the link, then toggle connected files
+                if (!$(e.target).hasClass('file-link')) {
+                    $(this).parent().nextUntil(".main-node").toggle();
+                }
+            });
+
+            // Button to open object details modal
+            $(".details-btn").on("click", function(e) {
+                e.stopPropagation(); // Prevent showing/hiding connected files
+
+                let filePath = $(this).data("file-path");
+                // Fetch the details for this file (assuming you have an endpoint for this)
+                $.get("/object_details", {file_path: filePath}, function(data) {
+                    // Display the data in the modal here, you'll have to structure a form or list
+                    $("#detailsModal").modal('show');
+                });
+            });
+
+            // Button to save changes
+            $("#saveDetails").on("click", function() {
+                // Collect the data from the form or list in the modal
+                // Send the data to a back_end endpoint to save it
+                $("#detailsModal").modal('hide');
+            });
+
+
+        });
+
+    </script>
+{% endblock %}
